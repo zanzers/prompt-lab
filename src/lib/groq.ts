@@ -1,6 +1,6 @@
 export const GROQ_BASE = "https://api.groq.com/openai/v1";
 
-// Heuristic: hide models that aren't for text chat
+
 const NON_CHAT = ["whisper", "tts", "guard", "orpheus", "embed"];
 
 export async function listChatModels(): Promise<string[]> {
