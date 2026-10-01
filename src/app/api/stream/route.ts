@@ -4,18 +4,23 @@ import { GROQ_BASE } from "@/lib/groq";
 export async function POST(req: Request) {
     const body = await req.json();
 
+    const system = typeof body.system === "string" ? body.system.trim() : "";
     const prompt = body.prompt;
     const model = body.model ?? "openai/gpt-oss-20b";
     const temperature = body.temperature ?? 0.7;
 
     if (typeof prompt !== "string" || prompt.trim() === "") {
-        return NextResponse.json({ error: "prompt is required" }, { status: 400 });
+    return NextResponse.json({ error: "prompt is required" }, { status: 400 });
     }
     if (prompt.length > 4000) {
         return NextResponse.json({ error: "prompt too long" }, { status: 400 });
     }
+    if (system.length > 2000) {
+        return NextResponse.json({ error: "system prompt too long" }, { status: 400 });
+    }
 
     const start = performance.now();
+
 
     const upstream = await fetch(`${GROQ_BASE}/chat/completions`, {
         method: "POST",
@@ -29,7 +34,10 @@ export async function POST(req: Request) {
             max_tokens: 1500,
             stream: true,
             stream_options: { include_usage: true },
-            messages: [{ role: "user", content: prompt }],
+            messages: [
+                ...(system ? [{ role: "system", content: system }] : []),
+                { role: "user", content: prompt },
+            ],
         }),
     });
 
